@@ -86,10 +86,10 @@ tbss_3_postreg -S
 cp FA/*FA_to_target.nii.gz FA_to_target/ && cd FA_to_target
 
 for a in *; 
-do tbss_skeleton -i ${ENIMGA_DIR}/ENIGMA_DTI_FA.nii.gz -p 0.049 ${ENIGMA_DIR}ENIGMA_DTI_FA_skeleton_mask_dst.nii.gz /usr/share/data/fsl-mni152-templates/LowerCingulum_1mm.nii.gz ${a} ${a}_FAskel -s ${ENIGMA_DIR}/ENIGMA_DTI_FA_skeleton_mask.nii.gz
+do tbss_skeleton -i ${ENIGMA_DIR}/ENIGMA_DTI_FA.nii.gz -p 0.049 ${ENIGMA_DIR}/ENIGMA_DTI_FA_skeleton_mask_dst.nii.gz /usr/share/data/fsl-mni152-templates/LowerCingulum_1mm.nii.gz ${a} ${a}_FAskel -s ${ENIGMA_DIR}/ENIGMA_DTI_FA_skeleton_mask.nii.gz
 done
 
-cp *skel* ../FA_skel/ && cd ../FA_skel
+cp *skel* ../FA_skels/ && cd ../FA_skels
 
 for sub in * ;
 do 
@@ -103,13 +103,13 @@ dirO1=./${dataset}_${typed}/
 
 
 
-for subject in $( ls FA_skel | grep .nii.gz)
+for subject in $( ls FA_skels | grep .nii.gz)
 
 do
 
 base=$(basename $subject .nii.gz);
 echo "Basename $base"
-${ENIMGA_DIR}/singleSubjROI_exe ${ENIGMA_DIR}/ENIGMA_look_up_table.txt ${ENIGMA_DIR}/mean_FA_skeleton_mask.nii.gz ${ENIGMA_DIR}/JHU-WhiteMatter-labels-1mm.nii.gz ${dirO1}${base}_ROIout FA_skel/${subject}
+${ENIGMA_DIR}/singleSubjROI_exe ${ENIGMA_DIR}/ENIGMA_look_up_table.txt ${ENIGMA_DIR}/ENIGMA_DTI_FA_skeleton_mask.nii.gz ${ENIGMA_DIR}/JHU-WhiteMatter-labels-1mm.nii.gz ${dirO1}${base}_ROIout FA_skels/${subject}
 
 done
 
@@ -129,7 +129,7 @@ dirO2=./${dataset}_${typed}_2/
 #    and 'echo' the output files into a new name
 rm ./subjectList.csv
 
-for subject in $( ls FA_skel/ | grep .nii.gz)
+for subject in $( ls FA_skels/ | grep .nii.gz)
 
 do
 base=$(basename $subject .nii.gz);
@@ -144,7 +144,7 @@ done
 #######
 ## part 3 - combine all 
 #######
-Table=./ALL_Subject_Info_2.csv
+Table=/quarantine/ENIGMA/ALL_Subject_Info_2.csv
 subjectIDcol=subjectID
 subjectList=./subjectList.csv
 outTable=./combinedROItable.csv
@@ -154,7 +154,8 @@ Nroi="all" #2
 rois="IC;EC"
 
 #location of R binary 
-#Rbin=/usr/local/R-2.9.2_64bit/bin/R
-Rbin=/quarantine/R/3.0.2/12.04/bin/R
+Rbin=`which R`
+
 #Run the R code
-${Rbin} --no-save --slave --args ${Table} ${subjectIDcol} ${subjectList} ${outTable} ${Ncov} ${covariates} ${Nroi} ${rois} <  ./combine_subject_tables.R  
+${Rbin} --no-save --slave --args ${Table} ${subjectIDcol} ${subjectList} ${outTable} ${Ncov} ${covariates} ${Nroi} ${rois} <  /quarantine/ENIGMA/combine_subject_tables.R
+
