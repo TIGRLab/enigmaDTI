@@ -299,8 +299,8 @@ cat vol????_flirt.txt > transform.txt
 transpose *.bvec > dirs_60.dat
 
 ## we need to have this accept an arbitrary number of directions
-matlab -nojvm < /projects/spins/qc/ENIGMA/finitestrain.m
-perl /projects/spins/qc/ENIGMA/dattonrrd.pl newdirs.dat newdirs.nhdr
+matlab -nojvm < /quarantine/ENIGMA/finitestrain.m
+perl /quarantine/ENIGMA/dattonrrd.pl newdirs.dat newdirs.nhdr
 
 cat newdirs.nhdr |cut -d " " -f 2 | tr '\n' ' ' > bvecs
 echo '' >> bvecs
@@ -320,7 +320,7 @@ cp bvecs DWI.bvec
 #
 # For now, uglyness. -- jdv
 
-/usr/bin/python2.7 /projects/spins/qc/ENIGMA/nifti2nrrd -i Distortion_Corrected.nii
+/usr/bin/python2.7 /quarantine/ENIGMA/nifti2nrrd -i Distortion_Corrected.nii
 
 bet Distortion_Corrected.nii CORR -m -f 0.1
 dtifit -k Distortion_Corrected.nii -m CORR_mask.nii.gz -b DWI.bval -r DWI.bvec -o CORR
