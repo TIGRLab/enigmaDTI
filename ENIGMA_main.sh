@@ -7,6 +7,7 @@
 #######
 #make an output directory for all files
 
+module load fsl/5.0.6
 
 function usage() {
   echo
@@ -133,7 +134,7 @@ for subject in $( ls FA_skels/ | grep .nii.gz)
 
 do
 base=$(basename $subject .nii.gz);
-${ENIGMA_DIR}//averageSubjectTracts_exe ${dirO1}${base}_ROIout.csv ${dirO2}${base}_ROIout_avg.csv
+${ENIGMA_DIR}/averageSubjectTracts_exe ${dirO1}${base}_ROIout.csv ${dirO2}${base}_ROIout_avg.csv
 
 
 # can create subject list here for part 3!

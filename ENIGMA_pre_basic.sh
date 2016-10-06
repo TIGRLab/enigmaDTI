@@ -1,5 +1,7 @@
 #!/bin/bash
 
+module load fsl/5.0.6
+
 # eddy-current correct DTI image
 eddy_correct *.nii.gz eddy_corrected.nii.gz 0
 

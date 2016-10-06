@@ -179,14 +179,14 @@ done
 
 ###############################################################################
 # T2
-#
+
 cp ../T2.nii.gz ./T2.nii.gz
 gunzip T2.nii.gz
 bet T2.nii T2_brain.nii -R
 
 ###############################################################################
 # Register T2 to B-ZERO
-#
+
 flirt -interp sinc \
       -sincwidth 7 \
       -noresample \
@@ -204,53 +204,50 @@ nii2mnc T2_REG.nii T2_REG.mnc
 cp T2_REG.nii T2_REG_F.nii
 cp vol0000_M.mnc average_blur.mnc
 
-# Select and Run Non-Linear Regsitration Algorithm 
+# Run Non-Linear Regsitration Algorithm 
 if [ ${METHOD} == "ANTS"]; then 
-    echo "Running ANTS Based Distortion Correction"
-    echo '#! /bin/bash' > nonlin.sh
-    echo "module load minc-tools/2011.11" >> nonlin.sh
-    echo "mincANTS 3 -m MI[average_blur.mnc,T2_REG.mnc,1,4] --number-of-affine-iterations 20x20x10 --MI-option 32x16000 --Restrict-Deformation 0x1x0 --affine-gradient-descent-option 0.5x0.95x1.e-4x1.e-4 --use-Histogram-Matching -r Gauss[3,0] -t SyN[0.5] -o Average_OUTPUT.xfm -i 10x10" >> nonlin.sh
 
-    chmod +x nonlin.sh
-    ./nonlin.sh
+    mincANTS 3 \
+        -m MI[average_blur.mnc,T2_REG.mnc,1,4] \
+        --number-of-affine-iterations 20x20x10 \
+        --MI-option 32x16000 \
+        --Restrict-Deformation 0x1x0 \
+        --affine-gradient-descent-option 0.5x0.95x1.e-4x1.e-4 \
+        --use-Histogram-Matching \
+        -r Gauss[3,0] \
+        -t SyN[0.5] \
+        -o Average_OUTPUT.xfm \
+        -i 10x10
 
 elif [ ${METHOD} == "TRAC" ]; then
-    echo "Running MINCTRACC Based Distortion Correction"
-    echo '#! /bin/bash' > nonlin.sh
-    echo "module load minc-tools/2011.11" >> nonlin.sh
-    echo "nlfit_smr_modelless_trans_mod T2_REG.mnc average_blur.mnc Average_OUTPUT.xfm" >> nonlin.sh
 
-    chmod +x nonlin.sh
-    ./nonlin.sh
+    nlfit_smr_modelless_trans_mod \
+        T2_REG.mnc average_blur.mnc \
+        Average_OUTPUT.xfm
 
 elif [ ${METHOD} == "FNIRT" ]; then
-    echo "Running FNIRT Based Distortion Correction"
-    echo '#! /bin/bash' > nonlin.sh
-    echo "fnirt --ref=T2_REG_F.nii --in=vol0000.nii --iout=FNIRT_NL.nii --fout=field_xyz.nii" >> nonlin.sh
-    echo "fslsplit field_xyz.nii NL" >> nonlin.sh
-    echo "mv NL0001.nii.gz Y_deform.nii.gz" >> nonlin.sh
-    echo "gunzip Y_deform.nii.gz" >> nonlin.sh
-    echo "nii2mnc Y_deform.nii" >> nonlin.sh
-    echo "cp Y_deform.mnc X.mnc" >> nonlin.sh
-    echo "cp Y_deform.mnc Z.mnc" >> nonlin.sh
-    echo "minccalc -expression "A[0]*0" X.mnc X_ZERO.mnc" >> nonlin.sh
-    echo "minccalc -expression "A[0]*0" Z.mnc Z_ZERO.mnc" >> nonlin.sh
-    echo "minccalc -expression "A[0]*-1" Y_deform.mnc Y_NEG.mnc" >> nonlin.sh
-    echo "mincconcat -concat_dimension t X_ZERO.mnc Y_NEG.mnc Z_ZERO.mnc FNIRT_TRANSFORM.mnc" >> nonlin.sh
 
-    chmod +x nonlin.sh
-    ./nonlin.sh
+    fnirt \
+        --ref=T2_REG_F.nii \
+        --in=vol0000.nii \
+        --iout=FNIRT_NL.nii \
+        --fout=field_xyz.nii
 
-else
-    echo "You must specify a distortion correction method!"
-    echo "Running ANTS Distortion Correction"
-    echo '#! /bin/bash' > nonlin.sh
-    echo "module load minc-tools/2011.11" >> nonlin.sh
-    echo "mincANTS 3 -m MI[average_blur.mnc,T2_REG.mnc,1,4] --number-of-affine-iterations 20x20x10 --MI-option 32x16000 --Restrict-Deformation --affine-gradient-descent-option 0.5x0.95x1.e-4x1.e-4 --use-Histogram-Matching -r Gauss[3,0] -t SyN[0.5] -o Average_OUTPUT.xfm -i 10x10" >> nonlin.sh
-
-    chmod +x nonlin.sh
-    ./nonlin.sh
-
+    fslsplit field_xyz.nii NL
+    mv NL0001.nii.gz Y_deform.nii.gz
+    gunzip Y_deform.nii.gz
+    nii2mnc Y_deform.nii
+    cp Y_deform.mnc X.mnc
+    cp Y_deform.mnc Z.mnc
+    
+    minccalc -expression "A[0]*0" X.mnc X_ZERO.mnc
+    minccalc -expression "A[0]*0" Z.mnc Z_ZERO.mnc
+    minccalc -expression "A[0]*-1" Y_deform.mnc Y_NEG.mnc
+    
+    mincconcat \
+        -concat_dimension t \
+        X_ZERO.mnc Y_NEG.mnc Z_ZERO.mnc \
+        FNIRT_TRANSFORM.mnc
 fi
 
 ###############################################################################
